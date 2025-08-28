@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gridhopper: Infinite 3D Frogger Arcade Game</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Navigate an endless, dynamically generated world in Gridhopper, a modern 3D take on the classic frogger arcade game. Dodge cars, leap on logs, and see how high you can score in this addictive, free browser game.">
+    <meta name="keywords" content="gridhopper, frogger, 3d frogger, crossy road, infinite runner, arcade game, browser game, free game, html5 game, endless game, generative game">
+    <meta name="author" content="Chris Pirillo">
+    <link rel="canonical" href="https://pirillo.com/arcade/gridhopper.html">
+
+    <!-- Core Web Vitals & Performance -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pirillo.com/arcade/gridhopper.html">
+    <meta property="og:title" content="Gridhopper: Infinite 3D Frogger Arcade Game">
+    <meta property="og:description" content="Navigate an endless, dynamically generated world in Gridhopper, a modern 3D take on the classic frogger arcade game. Dodge cars, leap on logs, and see how high you can score in this addictive, free browser game.">
+    <meta property="og:image" content="https://pirillo.com/arcade/images/gridhopper.png">
+    <meta property="og:site_name" content="Chris Pirillo's Arcade">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://pirillo.com/arcade/gridhopper.html">
+    <meta property="twitter:title" content="Gridhopper: Infinite 3D Frogger Arcade Game">
+    <meta property="twitter:description" content="Navigate an endless, dynamically generated world in Gridhopper, a modern 3D take on the classic frogger arcade game. Dodge cars, leap on logs, and see how high you can score!">
+    <meta property="twitter:image" content="https://pirillo.com/arcade/images/gridhopper.png">
+    <meta property="twitter:creator" content="@ChrisPirillo">
+    <meta property="twitter:site" content="@ChrisPirillo">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Gridhopper",
+      "url": "https://pirillo.com/arcade/gridhopper.html",
+      "author": {
+        "@type": "Person",
+        "name": "Chris Pirillo"
+      },
+      "image": "https://pirillo.com/arcade/images/gridhopper.png",
+      "description": "Play Gridhopper, an infinite 3D frogger-style arcade game with a dynamically generated world. Hop across busy roads and treacherous rivers in this fast-paced, addictive, and endless crossy adventure.",
+      "applicationCategory": "Game",
+      "operatingSystem": "All",
+      "genre": ["Arcade game", "Action game", "Endless runner"],
+      "playMode": "SinglePlayer",
+      "keywords": "frogger, 3d frogger, crossy road, infinite runner, arcade game, browser game, endless game, html5 game, generative game"
+    }
+    </script>
+    
+    <!-- Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1CQ4D3VQ3L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1CQ4D3VQ3L');
+    </script>
+
+    <!-- Scripts (Order is critical for functionality, do not change) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #ui-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+        #ui-container h1, #score, #lives {
+            font-family: 'Bungee', cursive;
+            font-size: 28px;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 30px 50px;
+            border-radius: 15px;
+            text-align: center;
+            display: none; /* Hidden by default */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        #message-box h2 {
+            font-family: 'Bungee', cursive;
+            margin: 0 0 15px 0;
+            font-size: 48px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+        #message-box p {
+            margin: 0 0 25px 0;
+            font-size: 18px;
+            font-family: 'Inter', sans-serif;
+        }
+        #restart-button {
+            padding: 12px 25px;
+            font-size: 18px;
+            cursor: pointer;
+            background: linear-gradient(45deg, #4CAF50, #81C784);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Inter', sans-serif;
+            font-weight: bold;
+        }
+        #restart-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div id="ui-container">
+            <div id="score">Score: 0</div>
+            <div id="lives">Lives: 3</div>
+        </div>
+
+        <div id="message-box">
+            <h2 id="message-title">Game Over</h2>
+            <p id="message-text">You've been squashed!</p>
+            <button id="restart-button">Play Again</button>
+        </div>
+    </main>
+    <script>
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const backgroundColor = 0x1a1a1a;
+        scene.background = new THREE.Color(backgroundColor);
+        scene.fog = new THREE.Fog(backgroundColor, 25, 45);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // --- LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.camera.top = 30;
+        directionalLight.shadow.camera.bottom = -30;
+        directionalLight.shadow.camera.left = -30;
+        directionalLight.shadow.camera.right = 30;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 50;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+        scene.add(directionalLight.target);
+
+        // --- GAME CONSTANTS & STATE ---
+        const GRID_SIZE = 2;
+        const WORLD_WIDTH = 12 * GRID_SIZE;
+        const STARTING_ROW = 6;
+        const LANE_BUFFER_AHEAD = 15;
+        const LANE_BUFFER_BEHIND = 5;
+        
+        let lives = 3;
+        let score = 0;
+        let highestRow = 0;
+        let gameActive = true;
+        
+        // --- DYNAMIC WORLD MANAGEMENT ---
+        let activeLanes = {}; 
+        let obstacles = [];
+        let lastWaterSpeedSign = 1;
+        let generatedLanes = {};
+        let lastGeneratedType = 'grass';
+        let consecutiveTypeCount = 0;
+
+        // --- FROG ---
+        const frogGeometry = new THREE.BoxGeometry(GRID_SIZE * 0.6, GRID_SIZE * 0.8, GRID_SIZE * 0.6);
+        // **FIX**: Changed color to a more vibrant orange
+        const frogMaterial = new THREE.MeshStandardMaterial({ color: 0xff6600 }); 
+        const frog = new THREE.Mesh(frogGeometry, frogMaterial);
+        frog.castShadow = true;
+        const FROG_START_POS = { x: 0, y: GRID_SIZE / 2, z: STARTING_ROW * GRID_SIZE };
+        
+        function resetFrog() {
+            frog.position.set(FROG_START_POS.x, FROG_START_POS.y, FROG_START_POS.z);
+            camera.position.set(0, 6, frog.position.z + 6);
+            camera.lookAt(frog.position);
+            highestRow = 0;
+            manageWorld();
+        }
+        
+        // --- WORLD GENERATION (DYNAMIC) ---
+        function getLaneType(rowIndex) {
+            if (generatedLanes[rowIndex]) {
+                return generatedLanes[rowIndex];
+            }
+
+            if (rowIndex >= 5) {
+                const laneInfo = { type: 'grass', color: 0x55a630 };
+                generatedLanes[rowIndex] = laneInfo;
+                return laneInfo;
+            }
+
+            let nextType;
+            const rand = Math.random();
+
+            if (lastGeneratedType === 'grass') {
+                if (rand < 0.5) {
+                    nextType = 'road';
+                } else if (rand < 0.9) {
+                    nextType = 'water';
+                } else {
+                    nextType = 'grass';
+                }
+            } else if (lastGeneratedType === 'road') {
+                if (consecutiveTypeCount < 3 && rand < 0.75) {
+                    nextType = 'road';
+                } else {
+                    nextType = 'grass';
+                }
+            } else if (lastGeneratedType === 'water') {
+                if (consecutiveTypeCount < 4 && rand < 0.8) {
+                    nextType = 'water';
+                } else {
+                    nextType = 'grass';
+                }
+            }
+
+            if (nextType === lastGeneratedType) {
+                consecutiveTypeCount++;
+            } else {
+                lastGeneratedType = nextType;
+                consecutiveTypeCount = 1;
+            }
+
+            let laneInfo;
+            switch (nextType) {
+                case 'road':
+                    laneInfo = { type: 'road', color: 0x495057 };
+                    break;
+                case 'water':
+                    laneInfo = { type: 'water', color: 0x219ebc };
+                    break;
+                case 'grass':
+                default:
+                    laneInfo = { type: 'grass', color: 0x55a630 };
+                    break;
+            }
+
+            generatedLanes[rowIndex] = laneInfo;
+            return laneInfo;
+        }
+
+
+        function addLane(rowIndex) {
+            if (activeLanes[rowIndex]) return;
+            const z = rowIndex * GRID_SIZE;
+            const laneInfo = getLaneType(rowIndex);
+            const geometry = new THREE.PlaneGeometry(WORLD_WIDTH, GRID_SIZE);
+            const material = new THREE.MeshStandardMaterial({ color: laneInfo.color });
+            const lane = new THREE.Mesh(geometry, material);
+            lane.rotation.x = -Math.PI / 2;
+            lane.position.set(0, 0, z);
+            lane.receiveShadow = true;
+            lane.userData.type = laneInfo.type;
+            lane.userData.rowIndex = rowIndex;
+            scene.add(lane);
+            activeLanes[rowIndex] = lane;
+
+            if (laneInfo.type === 'road' || laneInfo.type === 'water') {
+                const isRoad = laneInfo.type === 'road';
+                let speed;
+                if (isRoad) {
+                    speed = (Math.random() * 0.02 + 0.01) * (Math.random() > 0.5 ? 1 : -1);
+                } else {
+                    speed = (Math.random() * 0.02 + 0.01) * lastWaterSpeedSign;
+                    lastWaterSpeedSign *= -1;
+                }
+
+                const color = isRoad ? [0xff0000, 0xffff00, 0x0000ff][Math.floor(Math.random()*3)] : 0x8b4513;
+                const width = isRoad ? GRID_SIZE * 1.5 : GRID_SIZE * (Math.random() * 2 + 2);
+                const type = isRoad ? 'car' : 'log';
+                const obstacleCount = isRoad ? 2 : 1;
+                
+                const laneObstacles = [];
+                for(let i = 0; i < obstacleCount; i++) {
+                    let positionFound = false;
+                    let newX;
+                    let attempts = 0;
+                    while(!positionFound && attempts < 20) {
+                        attempts++;
+                        newX = (Math.random() * WORLD_WIDTH) - (WORLD_WIDTH / 2);
+                        let overlaps = false;
+                        for (const existingObstacle of laneObstacles) {
+                            const existingX = existingObstacle.position.x;
+                            const existingWidth = existingObstacle.geometry.parameters.width;
+                            if (Math.abs(newX - existingX) < (width / 2 + existingWidth / 2 + GRID_SIZE)) {
+                                overlaps = true;
+                                break;
+                            }
+                        }
+                        if (!overlaps) {
+                            positionFound = true;
+                        }
+                    }
+                    
+                    const obstacle = createObstacle(z, color, speed, type, width);
+                    obstacle.position.x = newX;
+                    obstacles.push(obstacle);
+                    laneObstacles.push(obstacle);
+                }
+            }
+        }
+
+        function createObstacle(z, color, speed, type, width) {
+            const geometry = new THREE.BoxGeometry(width, GRID_SIZE * 0.8, GRID_SIZE * 0.8);
+            const material = new THREE.MeshStandardMaterial({ color, transparent: true, opacity: 0 });
+            const obstacle = new THREE.Mesh(geometry, material);
+            obstacle.castShadow = true;
+            obstacle.position.y = GRID_SIZE / 2;
+            obstacle.position.z = z;
+            obstacle.userData = { speed, type };
+            scene.add(obstacle);
+            return obstacle;
+        }
+
+        function manageWorld() {
+            const playerRow = Math.round(frog.position.z / GRID_SIZE);
+            for (let i = playerRow - LANE_BUFFER_AHEAD; i < playerRow + 5; i++) {
+                 addLane(i);
+            }
+            const lanesToRemove = Object.keys(activeLanes).filter(key => parseInt(key) > playerRow + LANE_BUFFER_BEHIND);
+            lanesToRemove.forEach(key => {
+                const lane = activeLanes[key];
+                scene.remove(lane);
+                lane.geometry.dispose();
+                lane.material.dispose();
+                delete activeLanes[key];
+                obstacles = obstacles.filter(obstacle => {
+                    if (Math.round(obstacle.position.z / GRID_SIZE) === parseInt(key)) {
+                        scene.remove(obstacle);
+                        obstacle.geometry.dispose();
+                        obstacle.material.dispose();
+                        return false;
+                    }
+                    return true;
+                });
+            });
+        }
+
+        // --- CONTROLS ---
+        let isJumping = false;
+        document.addEventListener('keydown', (event) => {
+            if (isJumping || !gameActive) return;
+            let targetZ = frog.position.z;
+            let targetX = frog.position.x;
+            switch (event.key) {
+                case 'ArrowUp': targetZ -= GRID_SIZE; break;
+                case 'ArrowDown': targetZ += GRID_SIZE; break;
+                case 'ArrowLeft': targetX -= GRID_SIZE; break;
+                case 'ArrowRight': targetX += GRID_SIZE; break;
+                default: return;
+            }
+            targetX = Math.max(-WORLD_WIDTH / 2 + GRID_SIZE/2, Math.min(WORLD_WIDTH / 2 - GRID_SIZE/2, targetX));
+            jumpTo(targetX, targetZ);
+        });
+
+        // --- TOUCH CONTROLS ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (event) => {
+            if (isJumping || !gameActive) return;
+            touchStartX = event.touches[0].clientX;
+            touchStartY = event.touches[0].clientY;
+            event.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchend', (event) => {
+            if (isJumping || !gameActive) return;
+            const touchEndX = event.changedTouches[0].clientX;
+            const touchEndY = event.changedTouches[0].clientY;
+
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            let targetZ = frog.position.z;
+            let targetX = frog.position.x;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 50) { targetX += GRID_SIZE; } 
+                else if (deltaX < -50) { targetX -= GRID_SIZE; }
+            } else {
+                if (deltaY > 50) { targetZ += GRID_SIZE; } 
+                else if (deltaY < -50) { targetZ -= GRID_SIZE; }
+            }
+            
+            targetX = Math.max(-WORLD_WIDTH / 2 + GRID_SIZE/2, Math.min(WORLD_WIDTH / 2 - GRID_SIZE/2, targetX));
+            
+            if (targetX !== frog.position.x || targetZ !== frog.position.z) {
+                jumpTo(targetX, targetZ);
+            }
+        }, { passive: false });
+
+
+        function jumpTo(targetX, targetZ) {
+            isJumping = true;
+            const startPos = frog.position.clone();
+            const endPos = new THREE.Vector3(targetX, FROG_START_POS.y, targetZ);
+            const cameraStartPos = camera.position.clone();
+            const cameraEndPos = new THREE.Vector3(0, camera.position.y, endPos.z + 6);
+            let jumpProgress = 0;
+            frog.scale.set(1.2, 0.8, 1.2);
+            function animateJump() {
+                jumpProgress += 0.2; 
+                if (jumpProgress >= 1) {
+                    frog.position.copy(endPos);
+                    camera.position.copy(cameraEndPos);
+                    isJumping = false;
+                    updateScore();
+                    manageWorld();
+                    frog.scale.set(1, 1, 1);
+                    return;
+                }
+                const jumpHeight = Math.sin(jumpProgress * Math.PI) * 1.5;
+                frog.position.lerpVectors(startPos, endPos, jumpProgress);
+                frog.position.y = startPos.y + (endPos.y - startPos.y) * jumpProgress + jumpHeight;
+                camera.position.lerpVectors(cameraStartPos, cameraEndPos, jumpProgress);
+                const scaleProgress = Math.sin(jumpProgress * Math.PI);
+                frog.scale.set(1 - scaleProgress * 0.2, 1 + scaleProgress * 0.2, 1 - scaleProgress * 0.2);
+                requestAnimationFrame(animateJump);
+            }
+            animateJump();
+        }
+
+        // --- GAME LOGIC & COLLISION ---
+        const frogBox = new THREE.Box3();
+        const obstacleBox = new THREE.Box3();
+
+        function checkCollisions() {
+            if (!gameActive || isJumping) return;
+            frogBox.setFromObject(frog);
+            let onLog = false;
+            let onLogSpeed = 0;
+            for (const obstacle of obstacles) {
+                obstacleBox.setFromObject(obstacle);
+                if (frogBox.intersectsBox(obstacleBox)) {
+                    if (obstacle.userData.type === 'car') {
+                        gameOver('You became roadkill!');
+                        return;
+                    }
+                    if (obstacle.userData.type === 'log') {
+                        onLog = true;
+                        onLogSpeed = obstacle.userData.speed;
+                    }
+                }
+            }
+            if (onLog) {
+                const logTopY = (GRID_SIZE / 2) + (GRID_SIZE * 0.8 / 2);
+                const frogOnLogY = logTopY + (GRID_SIZE * 0.8 / 2);
+                frog.position.y = frogOnLogY;
+                frog.position.x += onLogSpeed;
+            } else {
+                frog.position.y = FROG_START_POS.y;
+            }
+            const currentRow = Math.round(frog.position.z / GRID_SIZE);
+            const currentLane = activeLanes[currentRow];
+            if (currentLane && currentLane.userData.type === 'water' && !onLog) {
+                gameOver('You went for a swim... and sank.');
+                return;
+            }
+            if (frog.position.x < -WORLD_WIDTH / 2 - 2 || frog.position.x > WORLD_WIDTH / 2 + 2) {
+                gameOver('Swept away!');
+                return;
+            }
+        }
+        
+        // --- UI & GAME STATE ---
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const messageBox = document.getElementById('message-box');
+        const messageTitle = document.getElementById('message-title');
+        const messageText = document.getElementById('message-text');
+        const restartButton = document.getElementById('restart-button');
+        
+        function updateUI() {
+            scoreElement.textContent = `Score: ${score}`;
+            livesElement.textContent = `Lives: ${lives}`;
+        }
+
+        function updateScore() {
+            const row = STARTING_ROW - Math.round(frog.position.z / GRID_SIZE);
+            if (row > highestRow) {
+                highestRow = row;
+                score = highestRow * 10;
+                updateUI();
+            }
+        }
+        
+        function fullReset() {
+            // Clear existing world objects
+            Object.values(activeLanes).forEach(lane => {
+                scene.remove(lane);
+                lane.geometry.dispose();
+                lane.material.dispose();
+            });
+            obstacles.forEach(obstacle => {
+                scene.remove(obstacle);
+                obstacle.geometry.dispose();
+                obstacle.material.dispose();
+            });
+            
+            // Reset game state variables
+            activeLanes = {};
+            obstacles = [];
+            lives = 3;
+            score = 0;
+            
+            // Reset world generation state for true randomness on restart
+            generatedLanes = {};
+            lastGeneratedType = 'grass';
+            consecutiveTypeCount = 0;
+            
+            // Reposition frog and rebuild the world
+            resetFrog();
+            updateUI();
+        }
+
+        function gameOver(message) {
+            gameActive = false;
+            lives--;
+            updateUI();
+            if (lives > 0) {
+                messageTitle.textContent = 'Try Again!';
+                messageText.textContent = message;
+                restartButton.textContent = 'Continue';
+            } else {
+                messageTitle.textContent = 'Game Over';
+                messageText.textContent = `Final Score: ${score}. ${message}`;
+                restartButton.textContent = 'Play Again';
+            }
+            messageBox.style.display = 'block';
+        }
+        
+        restartButton.addEventListener('click', () => {
+            messageBox.style.display = 'none';
+            if (lives <= 0) {
+                fullReset();
+            } else {
+                resetFrog();
+            }
+            gameActive = true;
+        });
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (gameActive) {
+                directionalLight.position.set(frog.position.x + 10, frog.position.y + 20, frog.position.z + 5);
+                directionalLight.target.position.set(frog.position.x, frog.position.y, frog.position.z);
+                directionalLight.target.updateMatrixWorld();
+
+                obstacles.forEach(obstacle => {
+                    obstacle.position.x += obstacle.userData.speed;
+                    
+                    const width = obstacle.geometry.parameters.width;
+                    const halfWidth = width / 2;
+                    const edge = WORLD_WIDTH / 2;
+                    const fadeZone = GRID_SIZE;
+                    const pos = obstacle.position.x;
+                    const speed = obstacle.userData.speed;
+                    
+                    let opacity = 1.0;
+
+                    if (speed > 0 && pos - halfWidth > edge) {
+                        opacity = Math.max(0, 1 - (pos - halfWidth - edge) / fadeZone);
+                    } 
+                    else if (speed < 0 && pos + halfWidth < -edge) {
+                        opacity = Math.max(0, 1 - (-edge - (pos + halfWidth)) / fadeZone);
+                    }
+                    else if (speed > 0 && pos + halfWidth < -edge) {
+                         opacity = Math.max(0, 1 - (-edge - (pos + halfWidth)) / fadeZone);
+                    }
+                    else if (speed < 0 && pos - halfWidth > edge) {
+                         opacity = Math.max(0, 1 - (pos - halfWidth - edge) / fadeZone);
+                    }
+
+                    obstacle.material.opacity = opacity;
+                    obstacle.castShadow = opacity > 0.1;
+
+                    if (opacity <= 0) {
+                        if (speed > 0) {
+                            obstacle.position.x = -edge - halfWidth - fadeZone;
+                        } else {
+                            obstacle.position.x = edge + halfWidth + fadeZone;
+                        }
+                    }
+                });
+                checkCollisions();
+            }
+            
+            const lookAtTarget = new THREE.Vector3(frog.position.x, FROG_START_POS.y, frog.position.z);
+            camera.lookAt(lookAtTarget);
+
+            renderer.render(scene, camera);
+        }
+
+        // --- INITIALIZATION ---
+        function init() {
+            // Add the frog to the scene once
+            scene.add(frog);
+            resetFrog();
+            updateUI();
+            animate();
+        }
+
+        // --- RESIZE HANDLER ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+
+    </script>
+</body>
+</html>
